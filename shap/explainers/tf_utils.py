@@ -12,26 +12,31 @@ def _import_tf():
 
 def _get_session(session):
     """Common utility to get the session for the tensorflow-based explainer.
-
     Parameters
     ----------
     explainer : Explainer
-
         One of the tensorflow-based explainers.
-
     session : tf.compat.v1.Session
-
         An optional existing session.
-
     """
     _import_tf()
     # if we are not given a session find a default session
     if session is None:
         try:
             session = tf.compat.v1.keras.backend.get_session()
+        except AttributeError:
+            # get_session was removed from Keras in 2023. Fall back to
+            # creating a new session directly via tf.compat.v1.Session()
+            try:
+                session = tf.compat.v1.Session()
+            except Exception:
+                session = None
+    if session is None:
+        try:
+            session = tf.compat.v1.get_default_session()
         except Exception:
-            session = tf.keras.backend.get_session()
-    return tf.get_default_session() if session is None else session
+            session = None
+    return session
 
 
 def _get_graph(explainer):
