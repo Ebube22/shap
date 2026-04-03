@@ -25,17 +25,12 @@ def _get_session(session):
         try:
             session = tf.compat.v1.keras.backend.get_session()
         except AttributeError:
-            # get_session was removed from Keras in 2023. Fall back to
-            # creating a new session directly via tf.compat.v1.Session()
-            try:
-                session = tf.compat.v1.Session()
-            except Exception:
-                session = None
-    if session is None:
-        try:
+            # get_session was removed from Keras in 2023.
+            # First check for an already-active default session before
+            # creating a new one to avoid discarding the caller's context.
             session = tf.compat.v1.get_default_session()
-        except Exception:
-            session = None
+            if session is None:
+                session = tf.compat.v1.Session()
     return session
 
 
